@@ -5,7 +5,7 @@ import type React from "react" // Import React
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Plant Price Calculator",
+  title: "STP & ETP Price Calculator",
   description: "Calculate prices for STP & ETP",
 }
 
