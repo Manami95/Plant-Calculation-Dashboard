@@ -72,7 +72,7 @@ const Dashboard = () => {
       <Sidebar />
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 mb-8">
+          <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 mb-8 ">
             <h1 className="text-3xl font-bold text-gray-900">Plant Price Calculator</h1>
             <p className="text-gray-500 mt-2">Calculate and generate detailed price estimates for water treatment plants</p>
           </div>
