@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "Plant Price Calculator",
-  description: "Calculate prices for water treatment plants",
+  description: "Calculate prices for STP & ETP",
 }
 
 export default function RootLayout({
