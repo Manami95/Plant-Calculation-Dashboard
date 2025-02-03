@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"components\\\\TotalCost.tsx -> ./PDFDownloadButton\":{\"id\":\"components\\\\TotalCost.tsx -> ./PDFDownloadButton\",\"files\":[\"static/chunks/_app-pages-browser_src_components_PDFDownloadButton_tsx.js\"]}}"
