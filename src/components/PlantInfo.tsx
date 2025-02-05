@@ -42,7 +42,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.capacity}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="5"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -57,7 +57,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.BOD}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="10"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -72,7 +72,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.COD}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="10"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -102,7 +102,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.TSS}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="5"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -117,7 +117,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.OilGrease}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="5"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -132,7 +132,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             value={plantData.Nitrogen}
             onChange={handleInputChange}
             min="0"
-            step="1"
+            step="5"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

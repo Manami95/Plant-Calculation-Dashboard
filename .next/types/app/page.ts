@@ -1,4 +1,4 @@
-// File: D:\waste water\dashboard\dashboard\src\app\page.tsx
+// File: D:\Plant-Calculation-Dashboard\src\app\page.tsx
 import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

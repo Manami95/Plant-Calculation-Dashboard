@@ -23,10 +23,16 @@ const Sidebar = () => {
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:relative md:translate-x-0 transition duration-200 ease-in-out z-10`}
       >
+        {/* Logo Section */}
+        <div className="flex justify-center my-4">
+          <img src="HEEPL.png" alt="Logo" className="h-16" />
+        </div>
+
         <a href="#" className="text-white flex items-center space-x-2 px-4">
           <Cpu className="w-8 h-8" />
           <span className="text-2xl font-extrabold">HEEPL</span>
         </a>
+        
         <nav>
           <a href="#" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
             <Home className="inline-block mr-2 w-5 h-5" /> Home
