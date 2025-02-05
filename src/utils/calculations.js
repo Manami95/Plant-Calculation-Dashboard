@@ -129,7 +129,7 @@ export function calculationOzonatorFlowRate(plantCapacity) {
 export function calculationUltraFiltrationSystemFlowRate(plantCapacity) {
   return plantCapacity / 20
 }
-export function calculationTubeDeckMediaNumber(plantCapacity){return plantCapacity * 22.5
+export function calculationTubeDeckMediaNumber(plantCapacity){return plantCapacity * 0.025
 }
 export function updateEquipmentQuantity(equipmentKey, newQuantity, equipmentData) {
   const updatedEquipmentData = { ...equipmentData };
