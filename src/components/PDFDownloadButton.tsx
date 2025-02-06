@@ -1,58 +1,69 @@
-"use client"
-
-import type React from "react"
-import { useState } from "react"
+import { useState } from 'react';
+import { pdf } from '@react-pdf/renderer';
+import PDFDocument from './PDFDocument';
+import { Download } from 'lucide-react';
 
 interface PDFDownloadButtonProps {
-  userData: any
-  plantData: any
-  equipmentData: any
-  totalCost: number
+  userData: {
+    name: string;
+    email: string;
+    phone: string;
+    company: string;
+  };
+  plantData: {
+    type: string;
+    capacity: number;
+    BOD: number;
+    COD: number;
+    pH: number;
+    TSS: number;
+    OilGrease: number;
+    Nitrogen: number;
+  };
+  equipmentData: Record<string, any>;
+  totalCost: number;
 }
 
-const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ userData, plantData, equipmentData, totalCost }) => {
-  const [isLoading, setIsLoading] = useState(false)
+const PDFDownloadButton = ({ userData, plantData, equipmentData, totalCost }: PDFDownloadButtonProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownload = async () => {
-    setIsLoading(true)
+    setIsGenerating(true);
     try {
-      const response = await fetch("/api/generate-pdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userData, plantData, equipmentData, totalCost }),
-      })
-
-      if (response.ok) {
-        // Create a Blob from the PDF Stream
-        const blob = await response.blob()
-        // Create a link element, use it to download the blob, then remove it
-        const link = document.createElement("a")
-        link.href = window.URL.createObjectURL(blob)
-        link.download = "plant_price_calculator_report.pdf"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else {
-        console.error("PDF generation failed")
-      }
+      const blob = await pdf(
+        <PDFDocument
+          userData={userData}
+          plantData={plantData}
+          equipmentData={equipmentData}
+          totalCost={totalCost}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `plant-price-calculator-${userData.name.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error generating PDF:", error)
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGenerating(false);
     }
-    setIsLoading(false)
-  }
+  };
 
   return (
     <button
       onClick={handleDownload}
-      disabled={isLoading}
-      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+      disabled={isGenerating}
+      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium rounded-lg transition-colors duration-200"
     >
-      {isLoading ? "Generating PDF..." : "Download PDF Report"}
+      <Download className="w-5 h-5 mr-2" />
+      {isGenerating ? 'Generating PDF...' : 'Download PDF Report'}
     </button>
-  )
-}
+  );
+};
 
-export default PDFDownloadButton
-
+export default PDFDownloadButton;
