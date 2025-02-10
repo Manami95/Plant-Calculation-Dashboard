@@ -1,9 +1,19 @@
+import equipmentInitialState from '../data/equipmentInitialState';
+
+// Helper function to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
 // Helper function to ensure a number is not NaN, replacing with 0 if it is
 const ensureNumber = (value) => (isNaN(value) ? 0 : value);
 
 // Function to check if a value is serializable
 const isSerializable = (value) => {
-    return typeof value !== 'function' && !(value instanceof HTMLElement) && !(value instanceof Window);
+    if (!isBrowser) return true; // Skip detailed checks on server side
+    return (
+        typeof value !== 'function' && 
+        !(isBrowser && value instanceof HTMLElement) && 
+        !(isBrowser && value instanceof Window)
+    );
 };
 
 // Deep clone function to filter out non-serializable properties
@@ -18,20 +28,41 @@ const deepCloneSerializable = (data) => {
             return acc;
         }, {});
     }
-    return data; // Return primitive values as is
+    return data;
+};
+
+// Function to safely access localStorage
+const safeLocalStorage = {
+    getItem: (key) => {
+        try {
+            return isBrowser ? localStorage.getItem(key) : null;
+        } catch (e) {
+            console.warn('localStorage not available:', e);
+            return null;
+        }
+    },
+    setItem: (key, value) => {
+        try {
+            if (isBrowser) {
+                localStorage.setItem(key, value);
+            }
+        } catch (e) {
+            console.warn('localStorage not available:', e);
+        }
+    }
 };
 
 // Function to save equipment data to local storage
 const saveEquipmentData = (equipmentData) => {
-    const serializableData = deepCloneSerializable(equipmentData); // Use deep cloning
-    console.log("Saving equipment data to local storage:", serializableData); // Debugging
-    localStorage.setItem('equipmentData', JSON.stringify(serializableData));
+    const serializableData = deepCloneSerializable(equipmentData);
+    console.log("Saving equipment data to local storage:", serializableData);
+    safeLocalStorage.setItem('equipmentData', JSON.stringify(serializableData));
 };
 
 // Function to load equipment data from local storage
 const loadEquipmentData = () => {
-    const data = localStorage.getItem('equipmentData');
-    console.log("Loaded equipment data from local storage:", data); // Debugging
+    const data = safeLocalStorage.getItem('equipmentData');
+    console.log("Loaded equipment data from local storage:", data);
     return data ? JSON.parse(data) : {};
 };
 
@@ -204,97 +235,87 @@ if (updatedEquipmentData["sludge-pump"]) {
       // Calculate total price for each equipment
       Object.keys(updatedEquipmentData).forEach((key) => {
         const equipment = updatedEquipmentData[key];
-        equipment.totalPrice = 0; // Reset totalPrice
+        const quantity = ensureNumber(equipment.quantity);
 
-        const capacityCost = ensureNumber(equipment.costPerCapacity) * ensureNumber(equipment.quantity);
-        const volumeCost = ensureNumber(equipment.costPerVolume) * ensureNumber(equipment.Volume);
-        const flowCost = ensureNumber(equipment.costPerFlow) * ensureNumber(equipment.Flow);
-        let pieceCount = ensureNumber(equipment.Piece || 0);
-        
-        if (key === "diffuser-course" || key === "diffuser-fine") {
-            pieceCount = Math.ceil(pieceCount); // Round up for diffuser pieces
+        switch (key) {
+          case "raw-sewage":
+            equipment.totalPrice = calculateRawSewageTotalCost(flowRate) * quantity;
+            break;
+          case "oil-skimmer":
+            equipment.totalPrice = 32000 * quantity;
+            break;
+          case "blower":
+            equipment.totalPrice = getBlowerTotalCost(blowerCapacity) * quantity;
+            break;
+          case "sludge-pump":
+            equipment.totalPrice = getSludgeHoldingTankTotalCost(sludgeHoldingTank) * quantity;
+            break;
+          case "filter-pump":
+            equipment.totalPrice = calculateFilterFeedPumpTotalCost(filterFeedPumpCapacity) * quantity;
+            break;
+          case "multi-grade-filter":
+            equipment.totalPrice = (mgfDiameter * equipment.costPerDiameter) * quantity;
+            break;
+          case "carbon-filter":
+            equipment.totalPrice = (carbonFilterDiameter * equipment.costPerDiameter) * quantity;
+            break;
+          case "tube-media":
+            equipment.totalPrice = (TubeDeck * equipment.costPerCapacity) * quantity;
+            break;
+          case "mbbr-media":
+            equipment.totalPrice = 19000 * quantity;
+            break;
+          case "diffuser-course":
+            equipment.totalPrice = (diffuserCoursePiece * equipment.costPerPiece) * quantity;
+            break;
+          case "diffuser-fine":
+            equipment.totalPrice = (diffuserFinePiece * equipment.costPerPiece) * quantity;
+            break;
+          case "flow-meter":
+            equipment.totalPrice = (flowMeterSize * equipment.costPerSize) * quantity;
+            break;
+          case "hypo-dosing":
+            equipment.totalPrice = 12000 * quantity;
+            break;
+          case "uv-system":
+            equipment.totalPrice = (UVSystemFlow * equipment.costPerFlow) * quantity;
+            break;
+          case "ozonator":
+            equipment.totalPrice = (OzonatorFlow * equipment.costPerFlow) * quantity;
+            break;
+          case "ultra-filtration":
+            equipment.totalPrice = (UltraFiltrationSystemFlow * equipment.costPerFlow) * quantity;
+            break;
+          case "piping":
+            equipment.totalPrice = 80000 * quantity;
+            break;
+          case "cable":
+            equipment.totalPrice = 35000 * quantity;
+            break;
+          case "panel":
+            equipment.totalPrice = 70000 * quantity;
+            break;
+          case "installation":
+            equipment.totalPrice = 40000 * quantity;
+            break;
+          case "commissioning":
+            equipment.totalPrice = 70000 * quantity;
+            break;
         }
-        
-        const pieceCost = ensureNumber(equipment.costPerPiece) * pieceCount;
-        const diameterCost = ensureNumber(equipment.costPerDiameter) * ensureNumber(equipment.diameter);
-        const sizeCost = ensureNumber(equipment.costPerSize) * ensureNumber(equipment.size);
-        
-        equipment.totalPrice += capacityCost + volumeCost + flowCost + pieceCost + diameterCost + sizeCost;
+      });
 
-    // Add additional costs based on specific calculations
-    switch (key) {
-      case "raw-sewage":
-          equipment.totalPrice += flowRate * ensureNumber(equipment.costPerCapacity);
-          break;
-      case "blower":
-          equipment.totalPrice += getBlowerTotalCost(blowerCapacity); // Use the total cost from function
-          break;
-      case "sludge-pump":
-          equipment.totalPrice += flowRate * ensureNumber(equipment.costPerCapacity);
-          break;
-      case "filter-pump":
-          equipment.totalPrice += calculateFilterFeedPumpTotalCost(filterFeedPumpCapacity);
-          break;    
-      case "multi-grade-filter":
-          equipment.totalPrice += mgfCapacity * ensureNumber(equipment.costPerDiameter);
-          break;
-      case "carbon-filter":
-          equipment.totalPrice += mgfDiameter * ensureNumber(equipment.costPerDiameter);
-          break;
-      case "tube-media":
-          equipment.totalPrice += TubeDeck * ensureNumber(equipment.costPerCapacity);
-          break;
-      case "mbbr-media":
-          equipment.totalPrice += MBBRMedia * ensureNumber(equipment.costPerVolume);
-          break;
-      case "diffuser-course":
-          equipment.totalPrice += diffuserCoursePiece * ensureNumber(equipment.costPerPiece);
-          break;
-      case "diffuser-fine":
-          equipment.totalPrice += diffuserFinePiece * ensureNumber(equipment.costPerPiece);
-          break;
-      case "flow-meter":
-          equipment.totalPrice += flowMeterSize * ensureNumber(equipment.costPerSize);
-          break;
-      case "uv-system":
-          equipment.totalPrice += UVSystemFlow * ensureNumber(equipment.costPerFlow);
-          break;
-      case "ozonator":
-          equipment.totalPrice += OzonatorFlow * ensureNumber(equipment.costPerFlow);
-          break;
-      case "ultra-filtration":
-          equipment.totalPrice += UltraFiltrationSystemFlow * ensureNumber(equipment.costPerFlow);
-          break;
-      case "piping":
-          equipment.totalPrice += 80000; // Fixed cost for piping
-          break;
-      case "cable":
-          equipment.totalPrice += 35000; // Fixed cost for cable
-          break;
-      case "panel":
-          equipment.totalPrice += 70000; // Fixed cost for panel
-          break;
-      case "installation":
-          equipment.totalPrice += 40000; // Fixed cost for installation
-          break;
-      case "commissioning":
-          equipment.totalPrice += 70000; // Fixed cost for commissioning
-          break;
-  }
-});
-saveEquipmentData(updatedEquipmentData);
-return updatedEquipmentData; // Return the updated equipment data
+      saveEquipmentData(updatedEquipmentData);
+      return updatedEquipmentData;
 }
 
 // Function to initialize the dashboard
 export function initializeDashboard() {
-let equipmentData = loadEquipmentData();
-if (Object.keys(equipmentData).length === 0) {
-    equipmentData = equipmentInitialState; // Fallback to initial state
-    saveEquipmentData(equipmentData); // Save initial state to local storage
-}
-console.log("Initializing dashboard with equipment data:", equipmentData); // Debugging
-return equipmentData; // Use this data to populate your dashboard
+    let equipmentData = loadEquipmentData();
+    if (Object.keys(equipmentData).length === 0) {
+        equipmentData = equipmentInitialState;
+        saveEquipmentData(equipmentData);
+    }
+    return equipmentData;
 }
 
 // Example of how to handle quantity changes in the UI

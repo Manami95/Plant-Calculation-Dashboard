@@ -1,23 +1,24 @@
+// File: components/Dashboard.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import UserInfo from "./UserInfo"
 import PlantInfo from "./PlantInfo"
+import TankInfo from "./TankInfo";
 import EquipmentList from "./EquipmentList"
-import TotalCost from "./TotalCost";
+import TotalCost from "./TotalCost"
 import Sidebar from "./Sidebar"
-import { calculateTotalCost, updateDynamicCapacities } from "../utils/calculations"
-import equipmentInitialState from "../data/equipmentInitialState"
+import { calculateTotalCost, updateDynamicCapacities, initializeDashboard } from "../utils/calculations"
+import { TankData } from "../types/TankData";
+import * as TankCalculation from "../utils/TankCalculation";
 
-// Define the Dashboard component
 const Dashboard = () => {
-  // State definitions
   const [userData, setUserData] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
-  });
+  })
 
   const [plantData, setPlantData] = useState({
     type: "STP",
@@ -28,57 +29,100 @@ const Dashboard = () => {
     TSS: 0,
     OilGrease: 0,
     Nitrogen: 0,
+  })
+  const [tankData, setTankData] = useState<TankData>({
+    type: "STP",
+    BarScreen: 0,
+    OilGreaseTank: 0,
+    EqualizationTank: 0,
+    AnoxicTank: 0,
+    MBBRTank: 0,
+    TubeSettle: 0,
+    FilterFeedTank: 0,
+    TreatedWaterTank: 0,
+    UFWaterTank: 0,
+    SludgeHoldingTank: 0,
+    volume: 0,
+    length: 3,
+    height: 3,
   });
 
-  const [equipmentData, setEquipmentData] = useState(equipmentInitialState);
-  const [totalCost, setTotalCost] = useState<number>(0); // Ensure totalCost is a number
+
+  const [equipmentData, setEquipmentData] = useState(initializeDashboard())
+  const [totalCost, setTotalCost] = useState(0)
 
   useEffect(() => {
-    const updatedEquipmentData = updateDynamicCapacities(plantData, equipmentData);
-    setEquipmentData(updatedEquipmentData);
-    const newTotalCost = calculateTotalCost(updatedEquipmentData);
-    setTotalCost(newTotalCost);
-  }, [plantData, equipmentData]);
+    const updatedEquipmentData = updateDynamicCapacities(plantData, equipmentData)
+    setEquipmentData(updatedEquipmentData)
+  }, [plantData])
 
-  const handleUserDataChange = (newData: Partial<typeof userData>) => {
-    setUserData((prevData) => ({ ...prevData, ...newData }));
-  };
+  useEffect(() => {
+    const flowRate = TankCalculation.calculateFlowRate(plantData.capacity);
+    const peakFactor = 2.25; // You can adjust this value or make it dynamic based on requirements
+    const peakFlow = flowRate * peakFactor;
 
-  const handlePlantDataChange = (newData: Partial<typeof plantData>) => {
-    setPlantData((prevData) => ({ ...prevData, ...newData }));
-  };
+    const updatedTankData: TankData = {
+      ...tankData,
+      BarScreen: TankCalculation.calculateBarScreenVolume(flowRate, peakFlow),
+      OilGreaseTank: TankCalculation.calculateOilGreaseVolume(flowRate, peakFlow),
+      EqualizationTank: TankCalculation.calculateEqualizationTankVolume(flowRate),
+      AnoxicTank: TankCalculation.calculateAnoxicTankVolume(flowRate),
+      MBBRTank: TankCalculation.calculateMBBRTankVolume(
+        plantData.capacity, 
+        plantData.BOD || 0
+      ),
+      TubeSettle: TankCalculation.calculateTubeSettleVolume(flowRate),
+      FilterFeedTank: TankCalculation.calculateFilterFeedTankVolume(flowRate),
+      TreatedWaterTank: TankCalculation.calculateTreatedWaterTankVolume(flowRate),
+      UFWaterTank: TankCalculation.calculateUFWaterTankVolume(flowRate),
+      SludgeHoldingTank: TankCalculation.calculateSludgeHoldingTankVolume(
+        plantData.capacity,
+        plantData.BOD || 0,
+        plantData.TSS || 0
+      ),
+      length: 3,
+      height: 3,
+      volume: 0,
+      type: "STP"
+    };
 
-  const handleEquipmentDataChange = (id: string, quantity: number, Volume: number, Diameter: number, Piece: number) => {
-    setEquipmentData((prevData) => {
-      const updatedEquipment = {
-        ...prevData[id],
-        quantity,
-        Volume,
-        Diameter,
-        Piece,
-      };
-
-      // Calculate the new total price based on the equipment type
-      if (updatedEquipment.costPerCapacity) {
-        updatedEquipment.totalPrice = quantity * updatedEquipment.costPerCapacity * plantData.capacity;
-      } else if (updatedEquipment.costPerDiameter) {
-        updatedEquipment.totalPrice = quantity * updatedEquipment.costPerDiameter * (updatedEquipment.Diameter || 1);
-      } else if (updatedEquipment.costPerVolume) {
-        updatedEquipment.totalPrice = updatedEquipment.costPerVolume * (updatedEquipment.Volume || 1);
-      } else if (updatedEquipment.costPerPiece) {
-        updatedEquipment.totalPrice = updatedEquipment.costPerPiece * (updatedEquipment.Piece || 1);
-      } else if (updatedEquipment.costPerSize) {
-        updatedEquipment.totalPrice = quantity * updatedEquipment.costPerSize * (updatedEquipment.size || 1);
-      } else if (updatedEquipment.costPerFlow) {
-        updatedEquipment.totalPrice = quantity * updatedEquipment.costPerFlow * (updatedEquipment.Flow || 1);
+    console.log('Updated Tank Data:', {
+      flowRate,
+      peakFlow,
+      BOD: plantData.BOD,
+      TSS: plantData.TSS,
+      capacity: plantData.capacity,
+      volumes: {
+        barScreen: updatedTankData.BarScreen,
+        oilGrease: updatedTankData.OilGreaseTank,
+        mbbr: updatedTankData.MBBRTank,
+        sludge: updatedTankData.SludgeHoldingTank
       }
-
-      return {
-        ...prevData,
-        [id]: updatedEquipment,
-      };
     });
-  };
+
+    setTankData(updatedTankData);
+  }, [plantData]);
+
+  useEffect(() => {
+    const newTotalCost = calculateTotalCost(equipmentData)
+    setTotalCost(newTotalCost)
+  }, [equipmentData])
+
+  const handleUserDataChange = (newData) => {
+    setUserData((prevData) => ({ ...prevData, ...newData }))
+  }
+
+  const handlePlantDataChange = (newData) => {
+    setPlantData((prevData) => ({ ...prevData, ...newData }))
+  }
+
+  const handleEquipmentDataChange = (id, quantity) => {
+    const updatedEquipmentData = updateDynamicCapacities(plantData, {
+      ...equipmentData,
+      [id]: { ...equipmentData[id], quantity: Number(quantity) }
+    });
+    setEquipmentData(updatedEquipmentData);
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -94,22 +138,23 @@ const Dashboard = () => {
 
           <UserInfo userData={userData} onDataChange={handleUserDataChange} />
           <PlantInfo plantData={plantData} onDataChange={handlePlantDataChange} />
+          <TankInfo tankData={tankData} />
           <EquipmentList
             equipmentData={equipmentData}
             plantData={plantData}
             onDataChange={handleEquipmentDataChange}
-            onPlantDataChange={handlePlantDataChange}
           />
           <TotalCost 
             totalCost={totalCost} 
             userData={userData} 
             plantData={plantData} 
-            equipmentData={equipmentData} 
+            equipmentData={equipmentData}
+            tankData={tankData}
           />
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard

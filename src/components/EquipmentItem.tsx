@@ -1,10 +1,10 @@
+// File: components/EquipmentItem.tsx
 "use client"
 
 import { useState, useEffect } from "react"
-import { Box, Hash, DollarSign, ChevronDown, ChevronUp } from "lucide-react"
+import { Box, Hash, DollarSign } from 'lucide-react'
 
-const EquipmentItem = ({ id, data, plantData, onDataChange, onPlantDataChange, calculations }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
+const EquipmentItem = ({ id, data, plantData, onDataChange }) => {
   const [localQuantity, setLocalQuantity] = useState(data.quantity || 0)
 
   useEffect(() => {
@@ -50,6 +50,14 @@ const EquipmentItem = ({ id, data, plantData, onDataChange, onPlantDataChange, c
     )
   }
 
+  // Format the total price with commas and fixed decimal places
+  const formattedTotalPrice = data.totalPrice 
+    ? data.totalPrice.toLocaleString('en-IN', { 
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2 
+      })
+    : "0.00"
+
   return (
     <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
       <div className="flex items-center justify-between mb-4">
@@ -59,10 +67,8 @@ const EquipmentItem = ({ id, data, plantData, onDataChange, onPlantDataChange, c
         </div>
       </div>
 
-      {/* Display all properties from initial state */}
       {Object.entries(data).map(([key, value]) => renderPropertyField(key, value))}
 
-      {/* Quantity Input */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
         <div className="relative">
@@ -80,7 +86,6 @@ const EquipmentItem = ({ id, data, plantData, onDataChange, onPlantDataChange, c
         </div>
       </div>
 
-      {/* Total Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Total Price (₹)</label>
         <div className="relative">
@@ -89,7 +94,7 @@ const EquipmentItem = ({ id, data, plantData, onDataChange, onPlantDataChange, c
           </div>
           <input
             type="text"
-            value={data.totalPrice?.toLocaleString() || "0"}
+            value={`₹${formattedTotalPrice}`}
             readOnly
             className="block w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700"
           />

@@ -14,9 +14,10 @@ interface TotalCostProps {
   userData: any
   plantData: any
   equipmentData: any
+  tankData: any
 }
 
-const TotalCost: React.FC<TotalCostProps> = ({ totalCost, userData, plantData, equipmentData }) => {
+const TotalCost: React.FC<TotalCostProps> = ({ totalCost, userData, plantData, equipmentData, tankData }) => {
   return (
     <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
@@ -25,6 +26,7 @@ const TotalCost: React.FC<TotalCostProps> = ({ totalCost, userData, plantData, e
           userData={userData}
           plantData={plantData}
           equipmentData={equipmentData}
+          tankData={tankData}
           totalCost={totalCost}
         />
       </div>
