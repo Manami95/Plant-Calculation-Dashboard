@@ -46,6 +46,7 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+
         <div>
           <label htmlFor="BOD" className="block text-sm font-medium text-gray-700 mb-1">
             BOD (mg/L)
@@ -133,6 +134,21 @@ const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
             onChange={handleInputChange}
             min="0"
             step="5"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="PeakFlow" className="block text-sm font-medium text-gray-700 mb-1">
+            Peak Flow
+            </label>
+          <input
+            type="number"
+            id="PeakFlow"
+            name="PeakFlow"
+            value={plantData.PeakFlow}
+            onChange={handleInputChange}
+            min="0"
+            step="1"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

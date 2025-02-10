@@ -4,12 +4,7 @@ export interface EquipmentData {
     diameter?: number
     Volume?: number
     size?: number
-    quantity: number
-    costPerCapacity: number
-    costPerDiameter: number
-    costPerVolume: number
-    costPerPiece: number
-    costPerFlow: number
+    quantity?: number
     totalPrice: number
   }
   

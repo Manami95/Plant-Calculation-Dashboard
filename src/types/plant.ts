@@ -7,6 +7,7 @@ export interface PlantData {
     TSS: number
     OilGrease: number
     Nitrogen: number
+    PeakFlow: number
   }
   
   
