@@ -2,8 +2,8 @@
 
 import type React from "react"
 import { useState } from "react"
-import { PDFDownloadLink } from "@react-pdf/renderer"
 import PDFDocument from "./PDFDocument"
+import { PDFDownloadLink, type BlobProvider } from '@react-pdf/renderer'
 
 interface PDFDownloadButtonProps {
   userData: any
@@ -34,9 +34,9 @@ const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       fileName="plant_price_calculator_report.pdf"
       className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
     >
-      {({ loading }) =>
+      {({ loading }: BlobProvider) => (
         loading ? "Generating PDF..." : "Download PDF Report"
-      }
+      )}
     </PDFDownloadLink>
   )
 }

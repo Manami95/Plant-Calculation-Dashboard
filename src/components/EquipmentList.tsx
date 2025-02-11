@@ -1,9 +1,30 @@
 // File: components/EquipmentList.tsx
 "use client"
 
+import React from "react";
+import { Box } from "lucide-react";
 import EquipmentItem from "./EquipmentItem"
 
-const EquipmentList = ({ equipmentData, plantData, onDataChange }) => {
+interface Equipment {
+  id: string;
+  name: string;
+  quantity: number;
+  basePrice: number;
+  totalPrice: number;
+  type: string;
+}
+
+interface EquipmentListProps {
+  equipmentData: Record<string, Equipment>;
+  plantData: any;
+  onDataChange: (id: string, quantity: number) => void;
+}
+
+const EquipmentList: React.FC<EquipmentListProps> = ({
+  equipmentData,
+  plantData,
+  onDataChange,
+}) => {
   return (
     <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
@@ -14,11 +35,11 @@ const EquipmentList = ({ equipmentData, plantData, onDataChange }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(equipmentData).map(([id, data]) => (
+        {Object.entries(equipmentData).map(([id, equipment]) => (
           <EquipmentItem
             key={id}
             id={id}
-            data={data}
+            data={equipment}
             plantData={plantData}
             onDataChange={onDataChange}
           />

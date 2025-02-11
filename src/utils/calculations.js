@@ -72,11 +72,12 @@ export function calculateTotalCost(equipmentData) {
 export function calculateFlowRate(plantCapacity) {
   return plantCapacity / 20
 }
+export function calculateEquivalentTank(flowRate) {
+  return flowRate * 8
+}
+
 export function calculateRawSewageTotalCost(flowRate) {
   return getRawSewageTotalCost(flowRate);
-}
-export function calculateOilSkimmerTotalCost(quantity) {
-  return 32000 * ensureNumber(quantity);
 }
 export function getRawSewageTotalCost(flowRate) {
   if (flowRate >= 8.23) return 21660;
@@ -85,8 +86,8 @@ export function getRawSewageTotalCost(flowRate) {
 return 0;
 }
 
-export function calculateEquivalentTank(flowRate) {
-  return flowRate * 8
+export function calculateOilSkimmerTotalCost(quantity) {
+  return 32000 * ensureNumber(quantity);
 }
 
 export function calculateMBBRTankVolume(BOD, plantCapacity, depth = 4) {
@@ -145,19 +146,26 @@ export function calculateMGFCapacity(plantCapacity) {
 export function calculateMGFDiameter(mgfCapacity) {
   return Math.sqrt((mgfCapacity * 4) / Math.PI) * 1000; // Multiply the result by 1000
 }
-export function calculateCarbonFilterDiameter(mgfCapacity) {
-  return Math.sqrt((mgfCapacity * 4) / Math.PI) * 1000; // Multiply the result by 1000
+export function calculateMGFVolume(mgfDiameter){
+  return (3.14 * mgfDiameter * mgfDiameter * 3)
 }
+export function calculateACFDiameter(mgfCapacity){
+  return Math.sqrt((mgfCapacity* 4) / Math.PI) * 1000; // Multiply the result by 1000
+}
+export function calculateACFVolume(acfDiameter){
+  return(3.14 * acfDiameter * acfDiameter * 3)
+}
+
 export function calculateFlowMeterSize(waterFlowRate) {
   return Math.sqrt((waterFlowRate * 4) / (3600 * 1.5 * 3.14)) * 1000
 }
-export function calculationUVSystemFlowRate(plantCapacity) {
+export function calculationUVSystemCapacity(plantCapacity) {
   return plantCapacity / 20
 }
-export function calculationOzonatorFlowRate(plantCapacity) {
+export function calculationOzonatorCapacity(plantCapacity) {
   return (plantCapacity * 5) / 20
 }
-export function calculationUltraFiltrationSystemFlowRate(plantCapacity) {
+export function calculationUltraFiltrationSystemCapacity(plantCapacity) {
   return plantCapacity / 20
 }
 export function calculationTubeDeckMediaNumber(plantCapacity){return plantCapacity * 22.5
@@ -172,141 +180,78 @@ export function updateEquipmentQuantity(equipmentKey, newQuantity, equipmentData
   // Recalculate the total prices after updating the quantity
   return updateDynamicCapacities(updatedEquipmentData);
 }
-export function updateDynamicCapacities(plantData, equipmentData) {
-  const updatedEquipmentData = { ...equipmentData }
+export const updateDynamicCapacities = (plantData, equipmentData) => {
+  const updatedEquipmentData = { ...equipmentData };
+  
+  // Calculate flow rate
+  const flowRate = plantData.capacity ? plantData.capacity / 24 : 0;
+  
+  // Calculate MGF (Multi Grade Filter) diameter
+  const mgfDiameter = Math.ceil(Math.sqrt(flowRate / 8) * 1000) / 1000;
+  
+  // Calculate Carbon Filter diameter
+  const carbonFilterDiameter = Math.ceil(Math.sqrt(flowRate / 8) * 1000) / 1000;
+  
+  // Calculate Tube Deck
+  const TubeDeck = Math.ceil(plantData.capacity / 24 * 0.5);
+  
+  // Calculate MBBR Media
+  const MBBRMedia = Math.ceil((plantData.capacity * plantData.BOD) / (1000 * 0.8));
+  
+  // Calculate UV System Capacity
+  const UVCapacity = Math.ceil(plantData.capacity / 24);
+  
+  // Calculate UF System Capacity
+  const UFCapacity = Math.ceil(plantData.capacity / 20);
+  
+  // Calculate Ozonator Capacity
+  const OzonatorCapacity = Math.ceil((plantData.capacity / 24) * 0.015);
+  
+  // Calculate diffuser pieces
+  const diffuserPieces = Math.ceil(MBBRMedia / 2);
 
-  const flowRate = calculateFlowRate(plantData.capacity);
-  const equivalentTank = calculateEquivalentTank(flowRate);
-  const MBBRTankVolume = calculateMBBRTankVolume(plantData.BOD, plantData.capacity, 4);
-  const nitrogenRemoval = calculateNitrogenRemoval(plantData.Nitrogen, plantData.capacity, 4);
-  const sludgeHoldingTank = calculateSludgeHoldingTank(plantData.capacity, plantData.BOD, plantData.TSS);
-  const filterFeedPumpCapacity = calculateFilterFeedPumpCapacity(plantData.capacity);
-    updatedEquipmentData["filter-pump"].capacity = filterFeedPumpCapacity; // Update capacity
-    updatedEquipmentData["filter-pump"].totalPrice = calculateFilterFeedPumpTotalCost(filterFeedPumpCapacity); // Update total price
-  const MBBRMedia = calculateMBBRMedia(plantData.BOD, plantData.capacity);
-  // Inside updateDynamicCapacities function
-  const blowerCapacity = calculateBlowerCapacity(equivalentTank, MBBRTankVolume, nitrogenRemoval, sludgeHoldingTank);
-  const diffuserCoursePiece = Math.ceil(calculateDiffuserCoursePiece(equivalentTank, sludgeHoldingTank));
-  const diffuserFinePiece = Math.ceil(calculateDiffuserFinePiece(MBBRTankVolume, nitrogenRemoval));
-  const mgfCapacity = calculateMGFCapacity(plantData.capacity);
-  const mgfDiameter = calculateMGFDiameter(mgfCapacity); 
-  const carbonFilterDiameter = calculateMGFDiameter(mgfCapacity);
-  const UVSystemFlow = calculationUVSystemFlowRate(plantData.capacity);
-  const OzonatorFlow = calculationOzonatorFlowRate(plantData.capacity);
-  const UltraFiltrationSystemFlow = calculationUltraFiltrationSystemFlowRate(plantData.capacity);
-  const TubeDeck = calculationTubeDeckMediaNumber(plantData.capacity);
-  const flowMeterSize = calculateFlowMeterSize(flowRate);
+  // Update equipment capacities
+  if (updatedEquipmentData["feed-pump"]) {
+    updatedEquipmentData["feed-pump"].capacity = plantData.capacity/24;
+  }
+  if (updatedEquipmentData["filter-pump"]) {
+    updatedEquipmentData["filter-pump"].capacity = plantData.capacity/16;
+  }
+  if (updatedEquipmentData["multi-grade-filter"]) {
+    updatedEquipmentData["multi-grade-filter"].diameter = mgfDiameter;
+  }
+  if (updatedEquipmentData["carbon-filter"]) {
+    updatedEquipmentData["carbon-filter"].diameter = carbonFilterDiameter;
+  }
+  if (updatedEquipmentData["tube-media"]) {
+    updatedEquipmentData["tube-media"].capacity = TubeDeck;
+  }
+  if (updatedEquipmentData["mbbr-media"]) {
+    updatedEquipmentData["mbbr-media"].Volume = MBBRMedia;
+  }
+  if (updatedEquipmentData["uv-system"]) {
+    updatedEquipmentData["uv-system"].capacity = UVCapacity;
+  }
+  if (updatedEquipmentData["uf-system"]) {
+    updatedEquipmentData["uf-system"].capacity = UFCapacity;
+  }
+  if (updatedEquipmentData["ozonator"]) {
+    updatedEquipmentData["ozonator"].capacity = OzonatorCapacity;
+  }
+  if (updatedEquipmentData["diffuser-course"]) {
+    updatedEquipmentData["diffuser-course"].Piece = diffuserPieces;
+  }
 
-  if (updatedEquipmentData["raw-sewage"]) {
-    updatedEquipmentData["raw-sewage"].capacity = flowRate;
-    updatedEquipmentData["raw-sewage"].totalPrice = calculateRawSewageTotalCost(flowRate);
-    console.log(`Updated Flow Rate: ${flowRate}`);
-}
+  // Calculate total prices
+  Object.keys(updatedEquipmentData).forEach(key => {
+    const equipment = updatedEquipmentData[key];
+    if (equipment.basePrice) {
+      equipment.totalPrice = equipment.basePrice * (equipment.quantity || 1);
+    }
+  });
 
-if (updatedEquipmentData["blower"]) {
-    updatedEquipmentData["blower"].capacity = blowerCapacity;
-    updatedEquipmentData["blower"].totalPrice = getBlowerTotalCost(blowerCapacity); // Update the total price based on the new capacity
-    console.log(`Blower Capacity: ${blowerCapacity}, Total Price: ${updatedEquipmentData["blower"].totalPrice}`); // Debugging
-}
-
-if (updatedEquipmentData["sludge-pump"]) {
-    updatedEquipmentData["sludge-pump"].capacity = flowRate;
-    updatedEquipmentData["sludge-pump"].totalPrice = getSludgeHoldingTankTotalCost(sludgeHoldingTank);
-    console.log(`Updated Sludge Holding Tank: ${sludgeHoldingTank}`);
-}
-  if (updatedEquipmentData["filter-pump"]) updatedEquipmentData["filter-pump"].capacity = plantData.capacity/16
-  if (updatedEquipmentData["multi-grade-filter"])updatedEquipmentData["multi-grade-filter"].diameter = mgfDiameter
-  if (updatedEquipmentData["carbon-filter"]) updatedEquipmentData["carbon-filter"].diameter = carbonFilterDiameter
-  if(updatedEquipmentData["tube-media"]) updatedEquipmentData["tube-media"].capacity = TubeDeck
-  if (updatedEquipmentData["mbbr-media"]) updatedEquipmentData["mbbr-media"].Volume = MBBRMedia
-  if (updatedEquipmentData["diffuser-course"]) updatedEquipmentData["diffuser-course"].Piece = diffuserCoursePiece
-  if (updatedEquipmentData["diffuser-fine"]) updatedEquipmentData["diffuser-fine"].Piece = diffuserFinePiece
-  if (updatedEquipmentData["flow-meter"]) updatedEquipmentData["flow-meter"].size = flowMeterSize
-  if (updatedEquipmentData["uv-system"]) updatedEquipmentData["uv-system"].Flow = UVSystemFlow
-  if (updatedEquipmentData["Ozonator"])updatedEquipmentData["Ozonator"].Flow = OzonatorFlow
-  if (updatedEquipmentData["ultra-filtration"]) updatedEquipmentData["ultra-filtration"].Flow = UltraFiltrationSystemFlow
- // Fixed costs
- updatedEquipmentData["piping"].totalPrice = 80000;
- updatedEquipmentData["cable"].totalPrice = 35000;
- updatedEquipmentData["panel"].totalPrice = 70000;
- updatedEquipmentData["installation"].totalPrice = 40000;
- updatedEquipmentData["commissioning"].totalPrice = 70000;
-
-      // Calculate total price for each equipment
-      Object.keys(updatedEquipmentData).forEach((key) => {
-        const equipment = updatedEquipmentData[key];
-        const quantity = ensureNumber(equipment.quantity);
-
-        switch (key) {
-          case "raw-sewage":
-            equipment.totalPrice = calculateRawSewageTotalCost(flowRate) * quantity;
-            break;
-          case "oil-skimmer":
-            equipment.totalPrice = 32000 * quantity;
-            break;
-          case "blower":
-            equipment.totalPrice = getBlowerTotalCost(blowerCapacity) * quantity;
-            break;
-          case "sludge-pump":
-            equipment.totalPrice = getSludgeHoldingTankTotalCost(sludgeHoldingTank) * quantity;
-            break;
-          case "filter-pump":
-            equipment.totalPrice = calculateFilterFeedPumpTotalCost(filterFeedPumpCapacity) * quantity;
-            break;
-          case "multi-grade-filter":
-            equipment.totalPrice = (mgfDiameter * equipment.costPerDiameter) * quantity;
-            break;
-          case "carbon-filter":
-            equipment.totalPrice = (carbonFilterDiameter * equipment.costPerDiameter) * quantity;
-            break;
-          case "tube-media":
-            equipment.totalPrice = (TubeDeck * equipment.costPerCapacity) * quantity;
-            break;
-          case "mbbr-media":
-            equipment.totalPrice = 19000 * quantity;
-            break;
-          case "diffuser-course":
-            equipment.totalPrice = (diffuserCoursePiece * equipment.costPerPiece) * quantity;
-            break;
-          case "diffuser-fine":
-            equipment.totalPrice = (diffuserFinePiece * equipment.costPerPiece) * quantity;
-            break;
-          case "flow-meter":
-            equipment.totalPrice = (flowMeterSize * equipment.costPerSize) * quantity;
-            break;
-          case "hypo-dosing":
-            equipment.totalPrice = 12000 * quantity;
-            break;
-          case "uv-system":
-            equipment.totalPrice = (UVSystemFlow * equipment.costPerFlow) * quantity;
-            break;
-          case "ozonator":
-            equipment.totalPrice = (OzonatorFlow * equipment.costPerFlow) * quantity;
-            break;
-          case "ultra-filtration":
-            equipment.totalPrice = (UltraFiltrationSystemFlow * equipment.costPerFlow) * quantity;
-            break;
-          case "piping":
-            equipment.totalPrice = 80000 * quantity;
-            break;
-          case "cable":
-            equipment.totalPrice = 35000 * quantity;
-            break;
-          case "panel":
-            equipment.totalPrice = 70000 * quantity;
-            break;
-          case "installation":
-            equipment.totalPrice = 40000 * quantity;
-            break;
-          case "commissioning":
-            equipment.totalPrice = 70000 * quantity;
-            break;
-        }
-      });
-
-      saveEquipmentData(updatedEquipmentData);
-      return updatedEquipmentData;
-}
+  return updatedEquipmentData;
+};
 
 // Function to initialize the dashboard
 export function initializeDashboard() {

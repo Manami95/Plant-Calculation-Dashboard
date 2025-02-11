@@ -1,48 +1,90 @@
 // File: components/PlantInfo.tsx
-import React from "react"
+"use client";
 
-const PlantInfo = ({ plantData, onDataChange }) => {
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    onDataChange({ [name]: name === "type" ? value : Number(value) })
-  }
+import React from "react";
+import { Box } from "lucide-react";
+
+interface PlantData {
+  type: "STP" | "ETP";
+  capacity: number;
+  BOD: number;
+  COD: number;
+  TSS: number;
+  pH: number;
+  OilGrease: number;
+  Nitrogen: number;
+  PeakFlow: number;
+}
+
+interface PlantInfoProps {
+  plantData: PlantData;
+  onDataChange: (field: string, value: number | string) => void;
+}
+
+const PlantInfo: React.FC<PlantInfoProps> = ({ plantData, onDataChange }) => {
+  const fields = [
+    { name: "Capacity", key: "capacity", unit: "m³/day" },
+    { name: "BOD", key: "BOD", unit: "mg/L" },
+    { name: "COD", key: "COD", unit: "mg/L" },
+    { name: "TSS", key: "TSS", unit: "mg/L" },
+    { name: "pH", key: "pH", unit: "" },
+    { name: "Oil & Grease", key: "OilGrease", unit: "mg/L" },
+    { name: "Nitrogen", key: "Nitrogen", unit: "mg/L" },
+    { name: "Peak Flow", key: "PeakFlow", unit: "m³/hr" },
+  ] as const;
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Plant Information</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Render input fields for each plantData property */}
-        {Object.entries(plantData).map(([key, value]) => (
-          <div key={key}>
-            <label htmlFor={key} className="block text-sm font-medium text-gray-700 mb-1">
-              {key.charAt(0).toUpperCase() + key.slice(1)}
-            </label>
-            {key === "type" ? (
-              <select
-                id={key}
-                name={key}
-                value={value}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="STP">STP</option>
-                <option value="ETP">ETP</option>
-              </select>
-            ) : (
+    <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Plant Parameters</h2>
+
+      {/* Plant Type Selector */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Plant Type
+        </label>
+        <select
+          value={plantData.type}
+          onChange={(e) => onDataChange("type", e.target.value)}
+          className="block w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="STP">STP (Sewage Treatment Plant)</option>
+          <option value="ETP">ETP (Effluent Treatment Plant)</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {fields.map(({ name, key, unit }) => (
+          <div
+            key={key}
+            className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Box className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
               <input
                 type="number"
-                id={key}
-                name={key}
-                value={value}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={plantData[key] || ''}
+                onChange={(e) => onDataChange(key, e.target.value)}
+                className="block w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={`Enter ${name.toLowerCase()}`}
+                min="0"
+                step="any"
               />
-            )}
+              {unit && (
+                <span className="text-sm text-gray-500 whitespace-nowrap">
+                  {unit}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PlantInfo
+export default PlantInfo;

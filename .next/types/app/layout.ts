@@ -1,4 +1,4 @@
-// File: D:\MY PROJECTS\dd\Plant-Calculation-Dashboard\src\app\layout.tsx
+// File: D:\Plant-Calculation-Dashboard\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

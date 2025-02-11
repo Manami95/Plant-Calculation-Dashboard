@@ -113,13 +113,44 @@ const styles = StyleSheet.create({
   },
 });
 
-const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }) => {
+interface PDFDocumentProps {
+  userData: {
+    name: string;
+    company: string;
+    email: string;
+    phone: string;
+  };
+  plantData: {
+    TSS: number;
+    COD: number;
+    BOD: number;
+    type: string;
+    capacity: number;
+  };
+  tankData: any; // TODO: Add specific type
+  equipmentData: any; // TODO: Add specific type
+  totalCost: number;
+}
+
+const PDFDocument = ({ userData, plantData, tankData, equipmentData, totalCost }: PDFDocumentProps) => {
   const formatDate = () => {
     return new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Helper function to safely format numbers
+  const formatNumber = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '0';
+    return value.toLocaleString() || '0';
+  };
+
+  // Helper function to safely format currency
+  const formatPrice = (price: number | null | undefined) => {
+    if (price === null || price === undefined) return '₹0';
+    return `₹${price.toLocaleString()}`;
   };
 
   return (
@@ -137,19 +168,19 @@ const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }
           <Text style={styles.sectionTitle}>Client Information</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Name:</Text>
-            <Text style={styles.value}>{userData.name}</Text>
+            <Text style={styles.value}>{userData.name || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Company:</Text>
-            <Text style={styles.value}>{userData.company}</Text>
+            <Text style={styles.value}>{userData.company || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Email:</Text>
-            <Text style={styles.value}>{userData.email}</Text>
+            <Text style={styles.value}>{userData.email || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Phone:</Text>
-            <Text style={styles.value}>{userData.phone}</Text>
+            <Text style={styles.value}>{userData.phone || 'N/A'}</Text>
           </View>
         </View>
 
@@ -158,27 +189,27 @@ const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }
           <Text style={styles.sectionTitle}>Plant Specifications</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Plant Type:</Text>
-            <Text style={styles.value}>{plantData.type}</Text>
+            <Text style={styles.value}>{plantData.type || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Capacity:</Text>
-            <Text style={styles.value}>{plantData.capacity} KLD</Text>
+            <Text style={styles.value}>{plantData.capacity ? `${plantData.capacity} KLD` : 'N/A'}</Text>
           </View>
           <View style={[styles.row, { marginTop: 10 }]}>
             <View style={{ flex: 1 }}>
               <View style={styles.row}>
                 <Text style={[styles.label, { width: '50%' }]}>BOD:</Text>
-                <Text style={[styles.value, { flex: 0 }]}>{plantData.BOD} mg/L</Text>
+                <Text style={[styles.value, { flex: 0 }]}>{plantData.BOD ? `${plantData.BOD} mg/L` : 'N/A'}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={[styles.label, { width: '50%' }]}>COD:</Text>
-                <Text style={[styles.value, { flex: 0 }]}>{plantData.COD} mg/L</Text>
+                <Text style={[styles.value, { flex: 0 }]}>{plantData.COD ? `${plantData.COD} mg/L` : 'N/A'}</Text>
               </View>
             </View>
             <View style={{ flex: 1 }}>
               <View style={styles.row}>
                 <Text style={[styles.label, { width: '50%' }]}>TSS:</Text>
-                <Text style={[styles.value, { flex: 0 }]}>{plantData.TSS} mg/L</Text>
+                <Text style={[styles.value, { flex: 0 }]}>{plantData.TSS ? `${plantData.TSS} mg/L` : 'N/A'}</Text>
               </View>
             </View>
           </View>
@@ -191,19 +222,19 @@ const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }
             <View style={styles.tableHeader}>
               <Text style={[styles.tableCell, styles.col1]}>Tank Name</Text>
               <Text style={[styles.tableCell, styles.col2]}>Volume (m³)</Text>
-              <Text style={[styles.tableCell, styles.col3]}>Dimensions (L×B×H)</Text>
+              <Text style={[styles.tableCell, styles.col3]}>Breath(m)</Text>
             </View>
-            {Object.entries(tankData).map(([key, value]) => {
+            {Object.entries(tankData || {}).map(([key, value]) => {
               if (typeof value === 'number' && key !== 'volume' && key !== 'length' && key !== 'height') {
                 const breath = value / (tankData.height * tankData.length);
                 return (
                   <View key={key} style={styles.tableRow}>
                     <Text style={[styles.tableCell, styles.col1]}>
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                      {key.replace(/([A-Z])/g, ' $1').trim() || 'N/A'}
                     </Text>
-                    <Text style={[styles.tableCell, styles.col2]}>{value.toFixed(2)}</Text>
+                    <Text style={[styles.tableCell, styles.col2]}>{value ? value.toFixed(2) : 'N/A'}</Text>
                     <Text style={[styles.tableCell, styles.col3]}>
-                      {`${tankData.length}×${breath.toFixed(2)}×${tankData.height}`}
+                      {tankData.length && tankData.height ? `${tankData.length}×${breath.toFixed(2)}×${tankData.height}` : 'N/A'}
                     </Text>
                   </View>
                 );
@@ -222,12 +253,12 @@ const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }
               <Text style={[styles.tableCell, styles.col2]}>Quantity</Text>
               <Text style={[styles.tableCell, styles.col3]}>Price (₹)</Text>
             </View>
-            {Object.entries(equipmentData).map(([key, equipment]: [string, any]) => (
+            {Object.entries(equipmentData || {}).map(([key, equipment]: [string, any]) => (
               <View key={key} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.col1]}>{equipment.name}</Text>
-                <Text style={[styles.tableCell, styles.col2]}>{equipment.quantity}</Text>
+                <Text style={[styles.tableCell, styles.col1]}>{equipment.name || 'N/A'}</Text>
+                <Text style={[styles.tableCell, styles.col2]}>{equipment.quantity || 0}</Text>
                 <Text style={[styles.tableCell, styles.col3]}>
-                  {equipment.totalPrice.toLocaleString()}
+                  {equipment.totalPrice ? formatPrice(equipment.totalPrice) : 'N/A'}
                 </Text>
               </View>
             ))}
@@ -238,7 +269,7 @@ const PDFDocument = ({ userData, plantData, equipmentData, tankData, totalCost }
         <View style={styles.totalSection}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>₹ {totalCost.toLocaleString()}</Text>
+            <Text style={styles.totalValue}>{formatPrice(totalCost)}</Text>
           </View>
         </View>
 

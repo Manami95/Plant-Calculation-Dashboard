@@ -25,12 +25,12 @@ const Sidebar = () => {
       >
         {/* Logo Section */}
         <div className="flex justify-center my-4">
-          <img src="HEEPL.png" alt="Logo" className="h-16" />
+          <img src="HEEPL.png" alt="Logo" className="h-40" />
         </div>
 
         <a href="#" className="text-white flex items-center space-x-2 px-4">
-          <Cpu className="w-8 h-8" />
-          <span className="text-2xl font-extrabold">HEEPL</span>
+         
+          <span className="text-2xl font-extrabold">HITESH ENVIRO ENGINEERS PVT LTD(HEEPL)</span>
         </a>
         
         <nav>
