@@ -12,6 +12,7 @@ import { calculateTotalCost, updateDynamicCapacities, initializeDashboard } from
 import { TankData } from "../types/TankData"
 import * as TankCalculation from "../utils/TankCalculation"
 import { PlantData } from "../types/PlantData"
+import equipmentInitialState from "../data/equipmentInitialState"
 
 interface Equipment {
   id: string
@@ -40,7 +41,8 @@ const Dashboard = () => {
     OilGrease: 0,
     Nitrogen: 0,
     PeakFlow: 0,
-  })
+  });
+
 
   const [tankData, setTankData] = useState<TankData>({
     type: "STP",
@@ -72,7 +74,8 @@ const Dashboard = () => {
   })
 
   const [equipmentData, setEquipmentData] = useState<Record<string, Equipment>>(initializeDashboard())
-  const [totalCost, setTotalCost] = useState(0)
+  const [totalCost, setTotalCost] = useState(0);
+  
 
   const isSTP = plantData.type === "STP"
 
@@ -114,42 +117,54 @@ const Dashboard = () => {
   const updateEquipmentPrices = (updatedTankData: TankData) => {
     const updatedEquipment = updateDynamicCapacities(plantData, equipmentData)
     setEquipmentData(updatedEquipment)
-    setTotalCost(calculateTotalCost(updatedEquipment))
+    const newTotalCost = Object.values(updatedEquipment).reduce((sum: number, item) => {
+      const equipment = item as { basePrice?: number; quantity?: number };
+      return sum + (equipment.basePrice || 0) * (equipment.quantity || 1);
+    }, 0);
+    setTotalCost(newTotalCost);
   }
 
   const handleUserDataChange = (newData: Partial<typeof userData>) => {
     setUserData(prev => ({ ...prev, ...newData }))
   }
 
-  const handlePlantDataChange = (field: string, value: number | string) => {
-    if (field === "type") {
-      setPlantData(prev => ({ ...prev, type: value as "STP" | "ETP" }))
-    } else {
-      const numericValue = value === "" ? 0 : Number(value)
-      if (!isNaN(numericValue)) {
-        setPlantData(prev => ({ ...prev, [field]: numericValue }))
-      }
-    }
-  }
+  const handlePlantDataChange = (newPlantData: any) => {
+    setPlantData(newPlantData);
+    
+    // Update equipment data with new calculations
+    const updatedEquipmentData = updateDynamicCapacities(newPlantData, equipmentData);
+    setEquipmentData(updatedEquipmentData);
+  
+    // Update total cost
+    const newTotalCost = Object.values(updatedEquipmentData).reduce((sum: number, item) => {
+      const equipment = item as { basePrice?: number; quantity?: number };
+      return sum + (equipment.basePrice || 0) * (equipment.quantity || 1);
+    }, 0);
+    setTotalCost(newTotalCost);
+  };
 
   const handleEquipmentDataChange = (id: string, quantity: number) => {
     const equipment = equipmentData[id];
-    const basePrice = equipment?.basePrice || 0;
+    
+    // Ensure we have the basePrice
+    const basePrice = equipment?.basePrice || equipment?.totalPrice / equipment?.quantity || 0;
     
     const updatedEquipmentData = {
       ...equipmentData,
       [id]: {
         ...equipment,
         quantity: quantity,
-        totalPrice: basePrice * quantity
+        basePrice: basePrice, // Preserve the base price
+        totalPrice: basePrice * quantity // Calculate new total price
       }
     };
     
     setEquipmentData(updatedEquipmentData);
 
-    // Recalculate total cost immediately
-    const newTotalCost = Object.values(updatedEquipmentData).reduce((sum, item) => {
-      return sum + (item.basePrice * item.quantity);
+    // Recalculate total cost
+    const newTotalCost: number = Object.values(updatedEquipmentData).reduce((sum, item) => {
+      const equipment = item as { basePrice?: number; quantity?: number };
+      return sum + (equipment.basePrice || 0) * (equipment.quantity || 1);
     }, 0);
     
     setTotalCost(newTotalCost);
@@ -162,6 +177,43 @@ const Dashboard = () => {
     }, 0);
     setTotalCost(newTotalCost);
   }, [equipmentData]);
+
+  // Clear all localStorage on mount
+  useEffect(() => {
+    localStorage.clear(); // Clear all stored data
+    resetDashboard();
+  }, []);
+
+  const resetDashboard = () => {
+    // Reset to initial states
+    setPlantData({
+      type: 'STP', // Add missing required type field
+      capacity: 0,
+      PeakFlow: 0,
+      BOD: 0,
+      COD: 0,
+      TSS: 0,
+      pH: 0,
+      OilGrease: 0,
+      Nitrogen: 0,
+    });
+    // Reset equipment data to clean initial state
+    const cleanEquipmentData = Object.entries(equipmentData).reduce<Record<string, any>>((acc, [key, item]: [string, any]) => {
+      acc[key] = {
+        name: item.name,
+        quantity: 1,
+        basePrice: 0,
+        totalPrice: item.totalPrice || 0,
+        ...(item.capacity !== undefined && { capacity: item.capacity }),
+        ...(item.Volume !== undefined && { Volume: item.Volume }),
+        ...(item.diameter !== undefined && { diameter: item.diameter }),
+      };
+      return acc;
+    }, {});
+    
+    setEquipmentData(cleanEquipmentData);
+    setTotalCost(0);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
