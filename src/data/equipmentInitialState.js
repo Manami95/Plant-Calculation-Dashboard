@@ -5,130 +5,145 @@ const equipmentInitialState = {
     name: "Raw Sewage Transfer Pump",
     capacity: 0,
     quantity: 1,
-    totalPrice: getRawSewageTotalCost(1), // Ensure this function handles the input correctly
-     // Add costPerCapacity for calculations
+    basePrice: 15000,
+    totalPrice: 15000,
   },
   "oil-skimmer": {
     name: "Oil Skimmer",
     quantity: 1,
+    basePrice: 32000,
     totalPrice: 32000,
-   // Add costPerCapacity for consistency
   },
   "blower": {
     name: "Blower",
     capacity: 0,
     quantity: 1,
-    totalPrice: getBlowerTotalCost(1),
-     // Ensure this is defined for calculations
+    basePrice: 31081,
+    totalPrice: 31081,
   },
   "sludge-pump": {
     name: "Sludge Recirculation Pump",
     capacity: 0,
     quantity: 1,
-    totalPrice: getSludgeHoldingTankTotalCost(1),
-   
+    basePrice: 15000,
+    totalPrice: 15000,
   },
   "filter-pump": {
     name: "Filter Feed Pump",
     capacity: 0,
     quantity: 1,
-    totalPrice: getSludgeHoldingTankTotalCost(1),
-    
+    basePrice: 9621,
+    totalPrice: 9621,
   },
   "multi-grade-filter": {
     name: "Multi Grade Filter",
-    costPerDiameter: 7000,
-    totalPrice: 100,
+    diameter: 0,
+    Volume: 0,
     quantity: 1,
-  },
-  "carbon-filter": {
-    name: "Activated Carbon Filter",
-    costPerDiameter: 7000,
+    basePrice: 7000,
     totalPrice: 7000,
+  },
+  "activated-carbon-filter": {
+    name: "Activated Carbon Filter",
+    diameter: 0,
+    Volume: 0,
     quantity: 1,
+    basePrice: 7000,
+    totalPrice: 7000,
   },
   "tube-media": {
     name: "Tube Deck Media",
+    capacity: 0,
     quantity: 1,
-    costPerCapacity: 7000,
+    basePrice: 7000,
     totalPrice: 7000,
   },
   "mbbr-media": {
     name: "MBBR Media",
-    Volume: 1,
-    
-    totalPrice: 19000,
+    Volume: 0,
     quantity: 1,
+    basePrice: 19000,
+    totalPrice: 19000,
   },
   "diffuser-course": {
     name: "Diffuser (Course)",
-    Piece: 1,
-    costPerPiece: 700,
-    totalPrice: 700,
+    Piece: 0,
+    quantity: 1,
+    basePrice: 800,
+    totalPrice: 800,
   },
   "diffuser-fine": {
     name: "Diffuser (Fine)",
-    Piece: 1,
-    costPerPiece: 700,
+    Piece: 0,
+    quantity: 1,
+    basePrice: 700,
     totalPrice: 700,
   },
   "flow-meter": {
     name: "Inlet and Outlet Flow Meter",
-    size: 1,
+    size: 0,
     quantity: 1,
-    costPerSize: 23000,
-    totalPrice: 100,
+    basePrice: 23000,
+    totalPrice: 23000,
   },
   "hypo-dosing": {
     name: "Hypo Dosing with Tank",
+    capacity: 0,
     quantity: 1,
-    costPerCapacity: 12000,
+    basePrice: 12000,
     totalPrice: 12000,
+    type: "dynamic",
+    costPerCapacity: true
   },
   "uv-system": {
     name: "UV System Without Analyser",
-    Flow: 1,
+    capacity: 0,
     quantity: 1,
-    costPerFlow: 1000,
+    basePrice: 1000,
     totalPrice: 1000,
   },
-  ozonator: {
+  "ozonator": {
     name: "Ozonator",
-    Flow: 1,
+    capacity: 0,
     quantity: 1,
-    costPerFlow: 1000,
+    basePrice: 1000,
     totalPrice: 1000,
   },
   "ultra-filtration": {
     name: "Ultra Filtration System",
-    Flow: 1,
+    capacity: 0,
     quantity: 1,
-    costPerFlow: 1000,
+    basePrice: 1000,
     totalPrice: 1000,
   },
-  piping: {
+  "piping": {
     name: "Piping and Fitting",
     quantity: 1,
+    basePrice: 80000,
     totalPrice: 80000,
   },
-  cable: {
+  "cable": {
     name: "Cable and Cable Tray",
     quantity: 1,
+    basePrice: 35000,
     totalPrice: 35000,
   },
-  panel: {
+  "panel": {
     name: "Panel",
     quantity: 1,
+    basePrice: 70000,
     totalPrice: 70000,
   },
-  installation: {
+  "installation": {
     name: "Installation",
     quantity: 1,
+    basePrice: 40000,
     totalPrice: 40000,
   },
-  commissioning: {
+  "commissioning": {
     name: "Commissioning and Handover",
     quantity: 1,
+    basePrice: 70000,
     totalPrice: 70000,
   },
 };

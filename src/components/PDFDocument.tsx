@@ -132,6 +132,14 @@ interface PDFDocumentProps {
   totalCost: number;
 }
 
+const FIXED_COSTS = {
+  commissioning: { name: "Commissioning and Handover", price: 70000 },
+  installation: { name: "Installation", price: 40000 },
+  panel: { name: "Panel", price: 70000 },
+  cable: { name: "Cable and Cable Tray", price: 35000 },
+  piping: { name: "Piping and Fitting", price: 80000 }
+};
+
 const PDFDocument = ({ userData, plantData, tankData, equipmentData, totalCost }: PDFDocumentProps) => {
   const formatDate = () => {
     return new Date().toLocaleDateString('en-US', {
@@ -244,7 +252,7 @@ const PDFDocument = ({ userData, plantData, tankData, equipmentData, totalCost }
           </View>
         </View>
 
-        {/* Equipment Details */}
+        {/* Equipment Details - Now excluding fixed cost items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Equipment Details</Text>
           <View style={styles.table}>
@@ -253,13 +261,36 @@ const PDFDocument = ({ userData, plantData, tankData, equipmentData, totalCost }
               <Text style={[styles.tableCell, styles.col2]}>Quantity</Text>
               <Text style={[styles.tableCell, styles.col3]}>Price (₹)</Text>
             </View>
-            {Object.entries(equipmentData || {}).map(([key, equipment]: [string, any]) => (
+            {Object.entries(equipmentData || {}).map(([key, equipment]: [string, any]) => {
+              // Skip fixed cost components
+              if (['commissioning', 'installation', 'panel', 'cable', 'piping'].includes(key)) {
+                return null;
+              }
+              return (
+                <View key={key} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.col1]}>{equipment.name || 'N/A'}</Text>
+                  <Text style={[styles.tableCell, styles.col2]}>{equipment.quantity || 0}</Text>
+                  <Text style={[styles.tableCell, styles.col3]}>
+                    {equipment.totalPrice ? formatPrice(equipment.totalPrice) : 'N/A'}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Fixed Costs Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Fixed Costs</Text>
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableCell, styles.col1]}>Item</Text>
+              <Text style={[styles.tableCell, styles.col3]}>Price (₹)</Text>
+            </View>
+            {Object.entries(FIXED_COSTS).map(([key, item]) => (
               <View key={key} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.col1]}>{equipment.name || 'N/A'}</Text>
-                <Text style={[styles.tableCell, styles.col2]}>{equipment.quantity || 0}</Text>
-                <Text style={[styles.tableCell, styles.col3]}>
-                  {equipment.totalPrice ? formatPrice(equipment.totalPrice) : 'N/A'}
-                </Text>
+                <Text style={[styles.tableCell, styles.col1]}>{item.name}</Text>
+                <Text style={[styles.tableCell, styles.col3]}>{formatPrice(item.price)}</Text>
               </View>
             ))}
           </View>
@@ -268,8 +299,20 @@ const PDFDocument = ({ userData, plantData, tankData, equipmentData, totalCost }
         {/* Total Cost */}
         <View style={styles.totalSection}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>{formatPrice(totalCost)}</Text>
+            <Text style={styles.totalLabel}>Equipment Cost:</Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(totalCost - Object.values(FIXED_COSTS).reduce((sum, item) => sum + item.price, 0))}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Fixed Costs:</Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(Object.values(FIXED_COSTS).reduce((sum, item) => sum + item.price, 0))}
+            </Text>
+          </View>
+          <View style={[styles.totalRow, { marginTop: 10, paddingTop: 10, borderTop: 1, borderTopColor: '#e2e8f0' }]}>
+            <Text style={[styles.totalLabel, { fontSize: 16 }]}>Total Amount:</Text>
+            <Text style={[styles.totalValue, { fontSize: 16 }]}>{formatPrice(totalCost)}</Text>
           </View>
         </View>
 

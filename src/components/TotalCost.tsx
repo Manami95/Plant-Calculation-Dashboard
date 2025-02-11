@@ -9,6 +9,15 @@ const PDFDownloadButton = dynamic(() => import("./PDFDownloadButton"), {
   loading: () => <p>Loading PDF generator...</p>,
 })
 
+// Define fixed cost components
+const FIXED_COSTS = {
+  commissioning: 70000,
+  installation: 40000,
+  panel: 70000,
+  cable: 35000,
+  piping: 80000
+};
+
 interface TotalCostProps {
   totalCost: number
   userData: any
@@ -18,6 +27,9 @@ interface TotalCostProps {
 }
 
 const TotalCost: React.FC<TotalCostProps> = ({ totalCost, userData, plantData, equipmentData, tankData }) => {
+  // Calculate total including fixed costs
+  const totalWithFixedCosts = Object.values(FIXED_COSTS).reduce((sum, cost) => sum + cost, totalCost);
+
   return (
     <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
@@ -27,25 +39,36 @@ const TotalCost: React.FC<TotalCostProps> = ({ totalCost, userData, plantData, e
           plantData={plantData}
           equipmentData={equipmentData}
           tankData={tankData}
-          totalCost={totalCost}
+          totalCost={totalWithFixedCosts}
         />
       </div>
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-lg font-medium text-gray-600">Total Equipment Cost</p>
-            <p className="text-sm text-gray-500">Including all selected items</p>
+            <p className="text-sm text-gray-500">Including all selected items and fixed costs</p>
           </div>
           <div className="flex items-center">
             <div className="bg-blue-600 p-3 rounded-lg mr-4">
               <DollarSign className="h-6 w-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-blue-600">₹{totalCost.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-blue-600">₹{totalWithFixedCosts.toLocaleString()}</p>
               <p className="text-sm text-gray-500">Total Amount</p>
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Display fixed costs breakdown */}
+      <div className="mt-6 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-700">Fixed Costs Breakdown</h3>
+        {Object.entries(FIXED_COSTS).map(([name, cost]) => (
+          <div key={name} className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-gray-600 capitalize">{name.replace(/-/g, ' ')}</span>
+            <span className="text-gray-800 font-medium">₹{cost.toLocaleString()}</span>
+          </div>
+        ))}
       </div>
     </div>
   )

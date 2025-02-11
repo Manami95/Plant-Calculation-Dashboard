@@ -20,6 +20,15 @@ interface EquipmentListProps {
   onDataChange: (id: string, quantity: number) => void;
 }
 
+// Define fixed cost components to exclude
+const FIXED_COST_COMPONENTS = [
+  'commissioning',
+  'installation',
+  'panel',
+  'cable',
+  'piping'
+];
+
 const EquipmentList: React.FC<EquipmentListProps> = ({
   equipmentData,
   plantData,
@@ -35,15 +44,18 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(equipmentData).map(([id, equipment]) => (
-          <EquipmentItem
-            key={id}
-            id={id}
-            data={equipment}
-            plantData={plantData}
-            onDataChange={onDataChange}
-          />
-        ))}
+        {Object.entries(equipmentData)
+          // Filter out fixed cost components
+          .filter(([id]) => !FIXED_COST_COMPONENTS.includes(id))
+          .map(([id, equipment]) => (
+            <EquipmentItem
+              key={id}
+              id={id}
+              data={equipment}
+              plantData={plantData}
+              onDataChange={onDataChange}
+            />
+          ))}
       </div>
     </div>
   )

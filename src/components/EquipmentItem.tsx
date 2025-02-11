@@ -1,4 +1,3 @@
-// File: components/EquipmentItem.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -28,7 +27,16 @@ const EquipmentItem = ({ id, data, plantData, onDataChange }) => {
   }
 
   const renderPropertyField = (key, value) => {
-    if (key === "name" || key === "quantity" || key === "totalPrice") return null
+    // Only exclude these specific properties from display
+    if (["name", "quantity", "totalPrice", "type", "costPerCapacity", "costPerDiameter", "costPerPiece", "costPerSize", "costPerFlow"].includes(key)) return null
+    
+    // Format the value based on its type
+    let displayValue = value
+    if (typeof value === 'number') {
+      displayValue = value.toFixed(2)
+    } else if (value === undefined || value === null) {
+      displayValue = 'N/A'
+    }
     
     return (
       <div className="mb-4" key={key}>
@@ -41,7 +49,7 @@ const EquipmentItem = ({ id, data, plantData, onDataChange }) => {
           </div>
           <input
             type="text"
-            value={typeof value === 'number' ? value.toFixed(2) : value || 'N/A'}
+            value={displayValue}
             readOnly
             className="block w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700"
           />

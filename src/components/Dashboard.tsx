@@ -8,7 +8,7 @@ import TankInfo from "./TankInfo"
 import EquipmentList from "./EquipmentList"
 import TotalCost from "./TotalCost"
 import Sidebar from "./Sidebar"
-import { calculateTotalCost, updateDynamicCapacities, initializeDashboard } from "../utils/calculations"
+import { calculateTotalCost, updateDynamicCapacities } from "../utils/calculations"
 import { TankData } from "../types/TankData"
 import * as TankCalculation from "../utils/TankCalculation"
 import { PlantData } from "../types/PlantData"
@@ -22,6 +22,9 @@ interface Equipment {
   totalPrice: number
   type: string
 }
+
+// Define fixed cost components
+const FIXED_COST_COMPONENTS = ['commissioning', 'installation', 'panel', 'cable', 'piping'];
 
 const Dashboard = () => {
   const [userData, setUserData] = useState({
@@ -73,7 +76,7 @@ const Dashboard = () => {
     height: 3,
   })
 
-  const [equipmentData, setEquipmentData] = useState<Record<string, Equipment>>(initializeDashboard())
+  const [equipmentData, setEquipmentData] = useState<Record<string, Equipment>>(equipmentInitialState)
   const [totalCost, setTotalCost] = useState(0);
   
 
@@ -144,39 +147,66 @@ const Dashboard = () => {
   };
 
   const handleEquipmentDataChange = (id: string, quantity: number) => {
-    const equipment = equipmentData[id];
+    // Don't update quantity for fixed cost components
+    if (FIXED_COST_COMPONENTS.includes(id)) {
+      return;
+    }
+
+    // Create a copy of the current equipment data
+    const updatedEquipmentData = { ...equipmentData };
     
-    // Ensure we have the basePrice
-    const basePrice = equipment?.basePrice || equipment?.totalPrice / equipment?.quantity || 0;
-    
-    const updatedEquipmentData = {
-      ...equipmentData,
-      [id]: {
-        ...equipment,
+    // Update the quantity and recalculate total price for non-fixed components
+    if (updatedEquipmentData[id]) {
+      updatedEquipmentData[id] = {
+        ...updatedEquipmentData[id],
         quantity: quantity,
-        basePrice: basePrice, // Preserve the base price
-        totalPrice: basePrice * quantity // Calculate new total price
-      }
-    };
+        totalPrice: updatedEquipmentData[id].basePrice * quantity
+      };
+    }
     
+    // Update the state with new equipment data
     setEquipmentData(updatedEquipmentData);
 
-    // Recalculate total cost
-    const newTotalCost: number = Object.values(updatedEquipmentData).reduce((sum, item) => {
-      const equipment = item as { basePrice?: number; quantity?: number };
-      return sum + (equipment.basePrice || 0) * (equipment.quantity || 1);
+    // Calculate total cost excluding fixed components
+    const newTotalCost = Object.entries(updatedEquipmentData).reduce((sum, [key, item]) => {
+      if (!FIXED_COST_COMPONENTS.includes(key)) {
+        return sum + (item.totalPrice || 0);
+      }
+      return sum;
     }, 0);
     
     setTotalCost(newTotalCost);
   };
 
-  // Add useEffect to update total cost when equipment data changes
+  // Update equipment data when plant data changes
   useEffect(() => {
-    const newTotalCost = Object.values(equipmentData).reduce((sum, equipment) => {
-      return sum + (equipment.totalPrice || 0);
+    if (plantData.capacity <= 0) return;
+
+    // Update equipment with new calculations
+    const updatedEquipment = updateDynamicCapacities(plantData, equipmentData);
+    
+    // Preserve quantities while updating prices
+    const equipmentWithPreservedQuantities = Object.entries(updatedEquipment).reduce((acc, [key, item]) => {
+      const currentQuantity = equipmentData[key]?.quantity || 1;
+      return {
+        ...acc,
+        [key]: {
+          ...item,
+          quantity: currentQuantity,
+          totalPrice: item.basePrice * currentQuantity
+        }
+      };
+    }, {});
+
+    setEquipmentData(equipmentWithPreservedQuantities);
+
+    // Update total cost
+    const newTotalCost = Object.values(equipmentWithPreservedQuantities).reduce((sum, item) => {
+      return sum + (item.totalPrice || 0);
     }, 0);
+    
     setTotalCost(newTotalCost);
-  }, [equipmentData]);
+  }, [plantData]);
 
   // Clear all localStorage on mount
   useEffect(() => {
